@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20e4fae73231e4fcf8bf7ca0eff80cb6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  offset: {x: 0, y: -0.5}
+  offset: {x: 0, y: -0.7}
 --- !u!61 &2243706417233999855
 BoxCollider2D:
   m_ObjectHideFlags: 0

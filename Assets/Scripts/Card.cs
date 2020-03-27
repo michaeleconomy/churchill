@@ -3,9 +3,10 @@ using System.Collections;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.EventSystems;
 
-public class Card : MonoBehaviour, IPointerClickHandler, IEndDragHandler, IDragHandler {
+public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEndDragHandler, IDragHandler {
     public static string spade = "♠",
         heart = "♥",
         club = "♣",
@@ -16,6 +17,7 @@ public class Card : MonoBehaviour, IPointerClickHandler, IEndDragHandler, IDragH
     public bool faceDown = true;
     public Color blackColor, redColor;
     public Sprite backSprite, frontSprite;
+    public Collider2D fullCollider, topCollider;
 
     public TextMesh[] suitTexts, numberTexts;
     public float speed, doubleClickSpeed;
@@ -25,7 +27,14 @@ public class Card : MonoBehaviour, IPointerClickHandler, IEndDragHandler, IDragH
     [NonSerialized]
     public string suit;
 
+    [NonSerialized]
+    public Card cardOnTop, parentCard;
+
+    [NonSerialized]
     public Stack stack;
+
+    [NonSerialized]
+    public SortingGroup sortingGroup;
 
     private Vector2 oldPostition;
 
@@ -34,6 +43,7 @@ public class Card : MonoBehaviour, IPointerClickHandler, IEndDragHandler, IDragH
 
     private void Awake() {
         spriteRenderer = GetComponent<SpriteRenderer>();
+        sortingGroup = GetComponent<SortingGroup>();
     }
 
     public string StyledNumber() {
@@ -65,8 +75,20 @@ public class Card : MonoBehaviour, IPointerClickHandler, IEndDragHandler, IDragH
         return Black ? blackColor : redColor;
     }
 
+    protected bool Sequential() {
+        if (faceDown) {
+            return false;
+        }
+        if (cardOnTop == null) {
+            return true;
+        }
+        return cardOnTop.number + 1 == number && cardOnTop.Black != Black && cardOnTop.Sequential();
+    }
+
     public void Refresh() {
         if (faceDown) {
+            fullCollider.enabled = false;
+            topCollider.enabled = false;
             spriteRenderer.sprite = backSprite;
             foreach (var suitText in suitTexts) {
                 suitText.text = "";
@@ -76,6 +98,8 @@ public class Card : MonoBehaviour, IPointerClickHandler, IEndDragHandler, IDragH
             }
             return;
         }
+        fullCollider.enabled = true;
+        UpdateTopCollider();
         spriteRenderer.sprite = frontSprite;
         foreach (var suitText in suitTexts) {
             suitText.text = suit;
@@ -85,6 +109,10 @@ public class Card : MonoBehaviour, IPointerClickHandler, IEndDragHandler, IDragH
             numberText.text = StyledNumber();
             numberText.color = GetColor();
         }
+    }
+
+    public void UpdateTopCollider() {
+        topCollider.enabled = Sequential();
     }
 
     public void Return() {
@@ -109,6 +137,11 @@ public class Card : MonoBehaviour, IPointerClickHandler, IEndDragHandler, IDragH
         oldPostition = pos;
     }
 
+    void IBeginDragHandler.OnBeginDrag(PointerEventData eventData) {
+        sortingGroup.sortingOrder = 99;
+        transform.parent = null;
+    }
+
     void IDragHandler.OnDrag(PointerEventData eventData) {
         var worldPos = eventData.pressEventCamera.ScreenToWorldPoint(eventData.position);
         worldPos.z = 0;
@@ -116,6 +149,9 @@ public class Card : MonoBehaviour, IPointerClickHandler, IEndDragHandler, IDragH
     }
 
     void IEndDragHandler.OnEndDrag(PointerEventData eventData) {
+        sortingGroup.sortingOrder = stack.Count();
+
+        transform.parent = parentCard?.transform ?? stack.transform;
         var newStack = GetOverlappingStack();
         if (newStack == null || newStack == stack) {
             Return();
@@ -125,23 +161,30 @@ public class Card : MonoBehaviour, IPointerClickHandler, IEndDragHandler, IDragH
     }
 
     private Stack GetOverlappingStack() {
-        var col = GetComponent<Collider2D>();
         var results = new List<Collider2D>();
-        col.OverlapCollider(new ContactFilter2D(), results);
+        var colEnabled = fullCollider.enabled;
+        fullCollider.enabled = true;
+        fullCollider.OverlapCollider(new ContactFilter2D(), results);
+        fullCollider.enabled = colEnabled;
+        Debug.Log("overlapping colliders found: " + results.Select(c => c.name).Join());
         var cards = results.Select(r => r.GetComponent<Card>()).OfType<Card>();
-        if (!cards.Any()) {
+        var stacks = cards.Select(c => c.stack).Union(
+            results.Select(r => r.GetComponent<Stack>()).OfType<Stack>());
+        if (stacks.Empty()) {
+            Debug.Log("no overlapping stacks found");
             return null;
         }
-        var closest = cards.First();
+        var closest = stacks.First();
         var closestDistance = closest.transform.position.Distance(transform.position);
-        foreach (var card in cards) {
-            var distance = closest.transform.position.Distance(transform.position);
+        foreach (var stack in stacks) {
+            var distance = stack.transform.position.Distance(transform.position);
             if (distance < closestDistance) {
                 closestDistance = distance;
-                closest = card;
+                closest = stack;
             }
         }
-        return closest.stack;
+        Debug.Log("closest: " + closest.name + closest.TopCard());
+        return closest;
     }
 
     void IPointerClickHandler.OnPointerClick(PointerEventData eventData) {
@@ -150,18 +193,9 @@ public class Card : MonoBehaviour, IPointerClickHandler, IEndDragHandler, IDragH
         if (diff.TotalSeconds <= doubleClickSpeed) {
             DoubleClick();
         }
-        else {
-            Click();
-        }
         lastClickAt = now;
     }
 
-    private void Click() {
-        if (stack is Deck) {
-            var deck = (Deck)stack;
-            deck.Deal();
-        }
-    }
 
     private void DoubleClick() {
         Debug.Log("dbl click");

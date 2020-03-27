@@ -1,5 +1,62 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &497538721006494590
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5879198404050805591}
+  - component: {fileID: 1779836000130005654}
+  m_Layer: 0
+  m_Name: topCollider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5879198404050805591
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 497538721006494590}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 8302777831233945587}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!61 &1779836000130005654
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 497538721006494590}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0.7104261}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 1.4, y: 2.1}
+    newSize: {x: 0.16, y: 0.16}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 1.4, y: 0.6791477}
+  m_EdgeRadius: 0
 --- !u!1 &1741358430549198984
 GameObject:
   m_ObjectHideFlags: 0
@@ -221,6 +278,7 @@ Transform:
   - {fileID: 8302777832986283383}
   - {fileID: 2432354800834606601}
   - {fileID: 5053337227376791881}
+  - {fileID: 5879198404050805591}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -317,6 +375,8 @@ MonoBehaviour:
   redColor: {r: 0, g: 0.4261931, b: 0.8490566, a: 1}
   backSprite: {fileID: 21300000, guid: 3a591b1fbb4394a7486fa44c2ab1349a, type: 3}
   frontSprite: {fileID: 21300000, guid: 39f9b6a500ec3407db04d367af8069bd, type: 3}
+  fullCollider: {fileID: 9164815511558897295}
+  topCollider: {fileID: 1779836000130005654}
   suitTexts:
   - {fileID: 8302777832986283380}
   - {fileID: 3234202345248709710}
@@ -325,7 +385,6 @@ MonoBehaviour:
   - {fileID: 1249942183981052912}
   speed: 30
   doubleClickSpeed: 0.5
-  stack: {fileID: 0}
 --- !u!210 &7181312687958809984
 SortingGroup:
   m_ObjectHideFlags: 0

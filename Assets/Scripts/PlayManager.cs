@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class PlayManager : MonoBehaviour {
     public static PlayManager instance;
@@ -30,7 +31,6 @@ public class PlayManager : MonoBehaviour {
         Destroy(tempCard.gameObject);
 
         var camera = Camera.main;
-        Debug.Log("card bounds: " + cardSize);
         var idealWidth = (cardSize.x + padding) * 10 + padding;
         camera.orthographicSize = idealWidth / (camera.aspect * 2);
 
@@ -44,8 +44,10 @@ public class PlayManager : MonoBehaviour {
         8.Times(i => {
             var stack = Instantiate(finalStackPrefab);
             finalStacks.Add(stack);
-            var xOffset = (padding + cardSize.x) * i + padding + cardSize.x / 2;
+            var xOffset = cardSize.x * .5f * i + padding + cardSize.x / 2;
             stack.transform.position = new Vector3(topRight.x - xOffset, y);
+            var sortingGroup = stack.GetComponent<SortingGroup>();
+            sortingGroup.sortingOrder = 8 - i;
         });
 
         y -= cardSize.y + padding;
@@ -75,18 +77,30 @@ public class PlayManager : MonoBehaviour {
     }
 
     private IEnumerator DoDeal() {
-        foreach (var card in allCards) {
-            card.Flip(true);
-            deck.AddCard(card, true);
+        deck.bottomCard = null;
+        devilsSix.bottomCard = null;
+        foreach (var stack in stacks) {
+            stack.bottomCard = null;
         }
-        yield return new WaitForSeconds(2);
-        deck.Shuffle();
+        foreach (var stack in finalStacks) {
+            stack.bottomCard = null;
+        }
+        foreach (var card in allCards.Shuffle()) {
+            card.parentCard = null;
+            card.cardOnTop = null;
+            card.stack = null;
+            card.Flip(true);
+        }
+        foreach (var card in allCards.Shuffle()) {
+            yield return StartCoroutine(deck.AddCardSync(card, true, true));
+        }
+        deck.AlignCollider();
+        yield return new WaitForSeconds(0.5f);
         yield return StartCoroutine(AddDevilsSix());
         for(var i = 0; i < 5; i++) {
             for (var stackIndex = i; stackIndex < 10 - i; stackIndex++) {
                 var stack = stacks[stackIndex];
                 var card = deck.TopCard();
-                Debug.Log("dealt: " + card);
                 if (stackIndex == i || stackIndex == 9 - i) {
                     card.Flip(false);
                 }
@@ -98,8 +112,12 @@ public class PlayManager : MonoBehaviour {
 
     private IEnumerator AddDevilsSix() {
         var card = deck.TopCard();
-        Debug.Log("dealt: " + card);
         card.Flip(false);
         yield return devilsSix.AddCardSync(card, true);
+    }
+
+
+    public void MoreGames() {
+        Application.OpenURL("http://www.styrognome.com");
     }
 }
