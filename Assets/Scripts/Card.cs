@@ -198,7 +198,18 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
 
 
     private void DoubleClick() {
-        Debug.Log("dbl click");
+        if (cardOnTop != null) {
+            return;
+        }
+        if (stack is FinalStack || stack is Deck) {
+            return;
+        }
+        foreach (var finalStack in PlayManager.instance.finalStacks) {
+            if (finalStack.CanAdd(this)) {
+                finalStack.AddCard(this);
+                return;
+            }
+        }
     }
 
     public override string ToString() {

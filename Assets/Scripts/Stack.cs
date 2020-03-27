@@ -95,7 +95,7 @@ public class Stack : MonoBehaviour {
     }
 
     public bool LockedIn() {
-        return bottomCard != null && bottomCard.number == 13 && bottomCard.faceDown;
+        return bottomCard != null && bottomCard.number == 13 && !bottomCard.faceDown;
     }
 
     public virtual bool CanAdd(Card card) {
