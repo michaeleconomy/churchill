@@ -105,7 +105,6 @@ public class Stack : MonoBehaviour {
         if (bottomCard == null) {
             return card.number == 13;
         }
-        Debug.Log("top card: " + TopCard());
         return TopCard().number == card.number + 1 &&
             card.Black != TopCard().Black;
     }

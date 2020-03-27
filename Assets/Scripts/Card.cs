@@ -123,6 +123,8 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
         var heading = pos - transform.position.In2d();
         var distance = heading.magnitude;
         var direction = heading / distance;
+
+        sortingGroup.sortingOrder = 99;
         while(true) {
             var moveDistance = speed * Time.deltaTime;
             distance -= moveDistance;
@@ -135,6 +137,7 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
         }
         transform.position = pos;
         oldPostition = pos;
+        sortingGroup.sortingOrder = stack.Count();
     }
 
     void IBeginDragHandler.OnBeginDrag(PointerEventData eventData) {
@@ -166,12 +169,11 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
         fullCollider.enabled = true;
         fullCollider.OverlapCollider(new ContactFilter2D(), results);
         fullCollider.enabled = colEnabled;
-        Debug.Log("overlapping colliders found: " + results.Select(c => c.name).Join());
         var cards = results.Select(r => r.GetComponent<Card>()).OfType<Card>();
-        var stacks = cards.Select(c => c.stack).Union(
-            results.Select(r => r.GetComponent<Stack>()).OfType<Stack>());
+        var stacks = cards.Select(c => c.stack).
+            Union(results.Select(r => r.GetComponent<Stack>()).OfType<Stack>()).
+            Where(s => s.CanAdd(this));
         if (stacks.Empty()) {
-            Debug.Log("no overlapping stacks found");
             return null;
         }
         var closest = stacks.First();
@@ -183,7 +185,6 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
                 closest = stack;
             }
         }
-        Debug.Log("closest: " + closest.name + closest.TopCard());
         return closest;
     }
 
