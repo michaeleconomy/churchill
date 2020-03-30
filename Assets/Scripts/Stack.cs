@@ -73,7 +73,6 @@ public class Stack : MonoBehaviour {
             bottomCard = card;
             card.transform.parent = transform;
         }
-        col.enabled = false;
         var oldStack = card.stack;
         card.SetStacks(this);
         if (!isUndo) {
@@ -114,19 +113,19 @@ public class Stack : MonoBehaviour {
 
     protected virtual void OnCardsChanged() {}
 
-    private void UpdateColliders() {
+    protected virtual void UpdateColliders() {
+        if (bottomCard == null) {
+            col.enabled = true;
+            return;
+        }
+        col.enabled = false;
         for (var card = bottomCard; card != null; card = card.cardOnTop) {
             card.UpdateColliders();
         }
     }
 
     protected virtual void RevealTop() {
-        if (bottomCard == null) {
-            col.enabled = true;
-        }
-        else {
-            TopCard().Flip(false);
-        }
+        TopCard()?.Flip(false);
         UpdateColliders();
     }
 

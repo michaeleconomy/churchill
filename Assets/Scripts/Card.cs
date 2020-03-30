@@ -116,7 +116,7 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
 
     public void UpdateColliders() {
         topCollider.enabled = Sequential();
-        fullCollider.enabled = cardOnTop == null;
+        fullCollider.enabled = !faceDown && cardOnTop == null;
     }
 
     private int NumParents() {

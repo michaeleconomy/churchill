@@ -141,7 +141,6 @@ public class PlayManager : MonoBehaviour {
         foreach (var card in allCards.Shuffle()) {
             deck.AddCardFast(card, true);
         }
-        deck.AlignCollider();
         yield return new WaitForSeconds(0.5f);
         yield return StartCoroutine(AddDevilsSix());
         for(var i = 0; i < 5; i++) {
