@@ -8729,6 +8729,68 @@ MonoBehaviour:
   cardBacks:
   - winsToUnlock: 0
     backSprite: {fileID: 21300000, guid: 3a591b1fbb4394a7486fa44c2ab1349a, type: 3}
+  - winsToUnlock: 1
+    backSprite: {fileID: 21300000, guid: 56828305768f7304eaf28c95ad07dfe5, type: 3}
+  - winsToUnlock: 5
+    backSprite: {fileID: 21300000, guid: eb08ebf385aad9441af3373eda03f492, type: 3}
+  - winsToUnlock: 10
+    backSprite: {fileID: 21300000, guid: 507aa62dd06ad344a99d14095ed4812d, type: 3}
+  - winsToUnlock: 15
+    backSprite: {fileID: 21300000, guid: 417cfa8ceb55f55468cbfc6fb03e6ce7, type: 3}
+  - winsToUnlock: 20
+    backSprite: {fileID: 21300000, guid: f317cf6bd5a585d448716686274ecb1f, type: 3}
+  - winsToUnlock: 25
+    backSprite: {fileID: 21300000, guid: ca96e76f435fdd7419d6bfcef22639c1, type: 3}
+  - winsToUnlock: 30
+    backSprite: {fileID: 21300000, guid: dce960d798ef44144a59fd2b619442e3, type: 3}
+  - winsToUnlock: 40
+    backSprite: {fileID: 21300000, guid: 7dab3beb2cb3da9489d764edebd87389, type: 3}
+  - winsToUnlock: 50
+    backSprite: {fileID: 21300000, guid: d1db39577a3c7724e9d4a7e077fb65d8, type: 3}
+  - winsToUnlock: 75
+    backSprite: {fileID: 21300000, guid: 24c79ecb1ba69f8429dc4db2fd0c5fc6, type: 3}
+  - winsToUnlock: 100
+    backSprite: {fileID: 21300000, guid: a307ec20e43a5c944b4156be8aa1da37, type: 3}
+  - winsToUnlock: 150
+    backSprite: {fileID: 21300000, guid: 01d5f7de354de75449e8871b3d5f20be, type: 3}
+  - winsToUnlock: 200
+    backSprite: {fileID: 21300000, guid: 48b84c3a7c2899f43aef4a1730504bc3, type: 3}
+  - winsToUnlock: 250
+    backSprite: {fileID: 21300000, guid: 207bd8850e058bd4587ead48f75eb2e4, type: 3}
+  - winsToUnlock: 300
+    backSprite: {fileID: 21300000, guid: a68c72dc31b6a3c46a970ed5d96ff01b, type: 3}
+  - winsToUnlock: 350
+    backSprite: {fileID: 21300000, guid: a6579e23053698a44af8a43c61ef23c9, type: 3}
+  - winsToUnlock: 400
+    backSprite: {fileID: 21300000, guid: ad3e90bcf1364ae4ca79c35eac797aad, type: 3}
+  - winsToUnlock: 450
+    backSprite: {fileID: 21300000, guid: fcb4f9e8429b83948ada2bf85a2adcbe, type: 3}
+  - winsToUnlock: 500
+    backSprite: {fileID: 21300000, guid: e23d3860fe4d26b41b67ac2157757ee6, type: 3}
+  - winsToUnlock: 600
+    backSprite: {fileID: 21300000, guid: a18bc78b69b0c544baa1b301c5e0ab67, type: 3}
+  - winsToUnlock: 700
+    backSprite: {fileID: 21300000, guid: 6ac84f93b0f1b8b4c81fbde7369113ae, type: 3}
+  - winsToUnlock: 800
+    backSprite: {fileID: 21300000, guid: 62e9013a72d1047478e6688fc6c0114c, type: 3}
+  - winsToUnlock: 900
+    backSprite: {fileID: 21300000, guid: 1ea2798de91e39f40b18488b90c558df, type: 3}
+  - winsToUnlock: 1000
+    backSprite: {fileID: 21300000, guid: 70c03f9e8e8fa5c44accfe1a534ce1a0, type: 3}
+  - winsToUnlock: 1250
+    backSprite: {fileID: 21300000, guid: 80305a0bf0ebe5d41b8653b599ffe405, type: 3}
+  - winsToUnlock: 1500
+    backSprite: {fileID: 21300000, guid: a0a4dc83ac3b87846b56e73088d1d5ea, type: 3}
+  - winsToUnlock: 1750
+    backSprite: {fileID: 21300000, guid: 4539d0f2703fef54f952776d2318137a, type: 3}
+  - winsToUnlock: 2000
+    backSprite: {fileID: 21300000, guid: da45d22f302d44e4fa0a082b30781b46, type: 3}
+  - winsToUnlock: 3000
+    backSprite: {fileID: 21300000, guid: 22cc9d658ff196d45a65b802c0a46f76, type: 3}
+  - winsToUnlock: 4000
+    backSprite: {fileID: 21300000, guid: 071ec404c396689479fc8cf13fe7d350, type: 3}
+  - winsToUnlock: 5000
+    backSprite: {fileID: 21300000, guid: 701e53f5974c56845a2d5ebbf9da512c, type: 3}
 --- !u!4 &1922708669
 Transform:
   m_ObjectHideFlags: 0
