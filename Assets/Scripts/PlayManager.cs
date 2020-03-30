@@ -59,7 +59,7 @@ public class PlayManager : MonoBehaviour {
         var topLeft = camera.ViewportToWorldPoint(Vector3.up);
         var topRight = camera.ViewportToWorldPoint(new Vector3(1, 1));
         
-        var y = topLeft.y - (cardSize.y * .5f + padding);
+        var y = topLeft.y - (cardSize.y * .5f + padding * 3);
         deck.transform.position = new Vector3(topLeft.x + padding * 2 + cardSize.x * 1.5f, y);
         allStacks.Add(deck.name, deck);
         devilsSix.transform.position = new Vector3(topLeft.x + cardSize.x * 3.2f, y);
