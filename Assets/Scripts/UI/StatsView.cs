@@ -31,7 +31,8 @@ public class StatsView : MonoBehaviour {
         AddStat("Games Played (Rate)", Stats.instance.RateOfGamesPlayed);
 
         historyList.DeleteChildren();
-        foreach (var game in Stats.instance.Games) {
+        for (var i = Stats.instance.Games.Count - 1; i >= 0; i--) {
+            var game = Stats.instance.Games[i];
             var row = Instantiate(gameRowPrefab, historyList);
             row.Initialize(game);
         }
