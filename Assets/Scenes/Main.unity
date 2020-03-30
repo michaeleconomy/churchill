@@ -8068,7 +8068,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: abc942e9ff12e4388971b38873d0bd66, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  padding: 0.2
+  padding: 0.05
   deck: {fileID: 1425225640}
   devilsSix: {fileID: 1190545109}
   stackPrefab: {fileID: 4868197206110609329, guid: d5ea2eb9b2b794b2eba7d6cd2b0a85ba,

@@ -20,7 +20,9 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
     public Collider2D fullCollider, topCollider;
 
     public TextMesh[] suitTexts, numberTexts;
-    public float speed, doubleClickSpeed;
+    public float speed,
+        moveTime,
+        doubleClickSpeed;
 
     [NonSerialized]
     public int number, deck;
@@ -127,32 +129,55 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
     }
 
     private Vector3 GetPosition() {
+        if (parentCard == null) {
+            if (stack == null) {
+                return Vector3.zero;
+            }
+            return stack.transform.position;
+        }
+        return parentCard.GetPosition() + Offset();
+    }
+
+    private Vector3 Offset() {
+        if (parentCard == null) {
+            return Vector3.zero;
+        }
         if (stack == null) {
             return Vector3.zero;
         }
-        return stack.transform.position + stack.offset.In3d() * NumParents();
+        if (parentCard.faceDown) {
+            return stack.offset / 2;
+        }
+        return stack.offset;
     }
 
     public void MoveFast() {
+        transform.parent = parentCard?.transform ?? stack.transform;
         transform.position = GetPosition();
         sortingGroup.sortingOrder = NumParents();
-        transform.parent = parentCard?.transform ?? stack.transform;
     }
 
     public IEnumerator Move() {
-        var heading = GetPosition() - transform.position;
+        var start = transform.position;
+        var end = GetPosition();
+        var heading = end - start;
         var distance = heading.magnitude;
         var direction = heading / distance;
 
         sortingGroup.sortingOrder = 99;
         transform.parent = null;
-        while(true) {
-            var moveDistance = speed * Time.deltaTime;
-            distance -= moveDistance;
-            if (distance <= 0) {
-                break;
-            }
-            transform.position += direction * moveDistance;
+        //while (true) {
+        //    var moveDistance = speed * Time.deltaTime;
+        //    distance -= moveDistance;
+        //    if (distance <= 0) {
+        //        break;
+        //    }
+        //    transform.position += direction * moveDistance;
+
+        //    yield return null;
+        //}
+        for (var time = Time.deltaTime; time < moveTime; time += Time.deltaTime) {
+            transform.position = start + direction * distance * time / moveTime;
 
             yield return null;
         }

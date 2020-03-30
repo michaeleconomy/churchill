@@ -62,7 +62,7 @@ public class PlayManager : MonoBehaviour {
         var y = topLeft.y - (cardSize.y * .5f + padding);
         deck.transform.position = new Vector3(topLeft.x + padding * 2 + cardSize.x * 1.5f, y);
         allStacks.Add(deck.name, deck);
-        devilsSix.transform.position = new Vector3(topLeft.x + padding * 3 + cardSize.x * 3f, y);
+        devilsSix.transform.position = new Vector3(topLeft.x + cardSize.x * 3.2f, y);
         allStacks.Add(devilsSix.name, devilsSix);
 
         8.Times(i => {
@@ -70,13 +70,13 @@ public class PlayManager : MonoBehaviour {
             stack.name = "finalStack" + i;
             allStacks.Add(stack.name, stack);
             finalStacks.Add(stack);
-            var xOffset = cardSize.x * .5f * i + padding + cardSize.x / 2;
+            var xOffset = cardSize.x * .45f * i + padding + cardSize.x / 2;
             stack.transform.position = new Vector3(topRight.x - xOffset, y);
             var sortingGroup = stack.GetComponent<SortingGroup>();
             sortingGroup.sortingOrder = 8 - i;
         });
 
-        y -= cardSize.y + padding;
+        y -= cardSize.y + padding * 6;
         10.Times(i => {
             var stack = Instantiate(stackPrefab);
             stack.name = "stack " + (i + 1);
