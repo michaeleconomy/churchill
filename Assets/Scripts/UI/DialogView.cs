@@ -15,19 +15,25 @@ public class DialogView : MonoBehaviour {
         "Cancel"
     };
 
+    private static DialogView Instance {
+        get {
+            var instances = Resources.FindObjectsOfTypeAll<DialogView>();
+            return instances.First();
+        }
+    }
+
     public static void Prompt(string message, string buttonCopy = "OK", Action callback = null) {
         var instances = Resources.FindObjectsOfTypeAll<DialogView>();
         var buttonsCopy = new List<string>{
             buttonCopy
         };
-        instances.First()?.Show(message, buttonsCopy, i => {
+        instances.First()?.ShowInternal(message, buttonsCopy, i => {
             callback?.Invoke();
         });
     }
 
     public static void Confirm(string message, Action confirmCallback, Action cancelCallback = null) {
-        var instances = Resources.FindObjectsOfTypeAll<DialogView>();
-        instances.First()?.Show(message, confirmButtonsCopy, i => {
+        Instance?.ShowInternal(message, confirmButtonsCopy, i => {
             if (i == 0) {
                 confirmCallback?.Invoke();
                 return;
@@ -36,7 +42,12 @@ public class DialogView : MonoBehaviour {
         });
     }
 
-    public void Show(string message, List<string> buttonsCopy, Action<int> callback = null) {
+
+    public static void Show(string message, List<string> buttonsCopy, Action<int> callback = null) {
+        Instance?.ShowInternal(message, buttonsCopy, callback);
+    }
+
+    private void ShowInternal(string message, List<string> buttonsCopy, Action<int> callback = null) {
         messageText.text = message;
         gameObject.SetActive(true);
         buttons.DeleteChildren();
