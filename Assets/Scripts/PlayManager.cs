@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,6 +8,9 @@ using UnityEngine.Rendering;
 public class PlayManager : MonoBehaviour {
     public static PlayManager instance;
 
+    public static bool locked = false,
+        gameInProgress = false;
+
     public float padding;
 
     public Deck deck;
@@ -14,13 +18,31 @@ public class PlayManager : MonoBehaviour {
     public Stack stackPrefab;
     public FinalStack finalStackPrefab;
     public Card cardPrefab;
+    public StartView startView;
+    public WinView winView;
 
     public readonly List<Stack> stacks = new List<Stack>();
     public readonly List<Stack> finalStacks = new List<Stack>();
     public readonly List<Card> allCards = new List<Card>();
 
+    private readonly Dictionary<string, Stack> allStacks = new Dictionary<string, Stack>();
+    private readonly Dictionary<string, Card> cardsById = new Dictionary<string, Card>();
+
+    private bool foreground = true;
+
     private void Awake() {
         instance = this;
+    }
+    void OnApplicationFocus(bool hasFocus) {
+        foreground = hasFocus;
+    }
+
+    public Stack GetStack(string stackName) {
+        return allStacks.GetWithDefault(stackName);
+    }
+    
+    public Card GetCard(string cardName) {
+        return cardsById.GetWithDefault(cardName);
     }
 
     private void Start() {
@@ -39,10 +61,14 @@ public class PlayManager : MonoBehaviour {
         
         var y = topLeft.y - (cardSize.y * .5f + padding);
         deck.transform.position = new Vector3(topLeft.x + padding * 2 + cardSize.x * 1.5f, y);
+        allStacks.Add(deck.name, deck);
         devilsSix.transform.position = new Vector3(topLeft.x + padding * 3 + cardSize.x * 3f, y);
+        allStacks.Add(devilsSix.name, devilsSix);
 
         8.Times(i => {
             var stack = Instantiate(finalStackPrefab);
+            stack.name = "finalStack" + i;
+            allStacks.Add(stack.name, stack);
             finalStacks.Add(stack);
             var xOffset = cardSize.x * .5f * i + padding + cardSize.x / 2;
             stack.transform.position = new Vector3(topRight.x - xOffset, y);
@@ -53,30 +79,47 @@ public class PlayManager : MonoBehaviour {
         y -= cardSize.y + padding;
         10.Times(i => {
             var stack = Instantiate(stackPrefab);
+            stack.name = "stack " + (i + 1);
+            allStacks.Add(stack.name, stack);
             var xOffset = (padding + cardSize.x) * i + padding + cardSize.x / 2;
             stack.transform.position = new Vector3(topLeft.x + xOffset, y);
             stacks.Add(stack);
         });
-        2.Times(_ => {
+        2.Times(j => {
             foreach (var suit in Card.suits) {
                 13.Times(i => {
-                    var card = Instantiate(cardPrefab);
+                    var card = Instantiate(cardPrefab, deck.transform.position, Quaternion.identity);
                     card.suit = suit;
                     card.number = i + 1;
+                    card.deck = j;
+                    card.name = card.ToString();
                     card.faceDown = true;
                     card.Refresh();
                     allCards.Add(card);
+                    cardsById.Add(card.ToString(), card);
                 });
             }
         });
 
+        GameStateManager.instance.Load();
+
+        StartCoroutine(TrackTime());
     }
 
     public void Deal() {
+        if (locked) {
+            return;
+        }
+        locked = true;
         StartCoroutine(DoDeal());
     }
 
     private IEnumerator DoDeal() {
+        if (gameInProgress) {
+            Stats.instance.TrackGameEnd(false);
+        }
+        gameInProgress = true;
+        Stats.instance.TrackGameStart();
         deck.bottomCard = null;
         devilsSix.bottomCard = null;
         foreach (var stack in stacks) {
@@ -89,10 +132,14 @@ public class PlayManager : MonoBehaviour {
             card.parentCard = null;
             card.cardOnTop = null;
             card.stack = null;
+            card.transform.parent = null;
+            card.sortingGroup.sortingOrder = -1;
+            card.transform.position = deck.transform.position;
             card.Flip(true);
         }
+        GameStateManager.instance.Clear();
         foreach (var card in allCards.Shuffle()) {
-            yield return StartCoroutine(deck.AddCardSync(card, true, true));
+            deck.AddCardFast(card, true);
         }
         deck.AlignCollider();
         yield return new WaitForSeconds(0.5f);
@@ -108,6 +155,8 @@ public class PlayManager : MonoBehaviour {
             }
             yield return StartCoroutine(AddDevilsSix());
         }
+        GameStateManager.instance.RecordUndo();
+        locked = false;
     }
 
     private IEnumerator AddDevilsSix() {
@@ -116,8 +165,121 @@ public class PlayManager : MonoBehaviour {
         yield return devilsSix.AddCardSync(card, true);
     }
 
-
     public void MoreGames() {
         Application.OpenURL("http://www.styrognome.com");
+    }
+
+    public void IntegrityCheck() {
+        foreach (var stack in stacks) {
+            Card lastCard = null;
+            var count = 0;
+            for (var card = stack.bottomCard; card != null; card = card.cardOnTop) {
+                if (card.parentCard != lastCard) {
+                    Debug.LogWarning("invalid parentCard: " + card.parentCard);
+                }
+                if (card.stack != stack) {
+                    Debug.LogWarning("invalid stack: " + card.stack.name + " expected: " + stack.name);
+                }
+                lastCard = card;
+                count ++;
+            }
+
+        }
+    }
+
+    public void WinCheck() {
+        if (!Winning()) {
+            return;
+        }
+        StartCoroutine(FinishOut());
+    }
+
+    private IEnumerator FinishOut() {
+        locked = true;
+        var cardsLeft = allCards.Where(c => !(c.stack is FinalStack)).ToList();
+
+        while (cardsLeft.Count > 0) {
+            for (var i = cardsLeft.Count - 1; i >= 0; i--) {
+                var card = cardsLeft[i];
+                if (card.cardOnTop != null) {
+                    continue;
+                }
+
+                foreach (var finalStack in finalStacks) {
+                    if (finalStack.CanAdd(card)) {
+                        cardsLeft.Remove(card);
+                        yield return StartCoroutine(finalStack.AddCardSync(card));
+                        break;
+                    }
+                }
+            }
+        }
+
+        locked = false;
+        gameInProgress = false;
+        Stats.instance.TrackGameEnd(true);
+        winView.Show();
+    }
+
+    private IEnumerator TrackTime() {
+        while(true) {
+            var lastTime = DateTime.Now;
+            yield return new WaitForSeconds(1);
+            if (gameInProgress && foreground) {
+                var elapsed = DateTime.Now - lastTime;
+                var elapsedSecs = (float)elapsed.TotalSeconds;
+                if (elapsedSecs > 1) {
+                    elapsedSecs = 1;
+                }
+                Stats.instance.TrackTime(elapsedSecs);
+            }
+        }
+    }
+
+    private bool Winning() {
+        foreach (var card in allCards) {
+            if (card.faceDown) {
+                return false;
+            }
+            if (card.stack is FinalStack) {
+                continue;
+            }
+            if (!card.Sequential()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void NoGameToLoad() {
+        startView.DoneLoading();
+    }
+
+    public void Load(List<RecordedMove> moves) {
+        locked = true;
+        foreach (var move in moves) {
+            LoadMove(move);
+        }
+        gameInProgress = true;
+        locked = false;
+        startView.gameObject.SetActive(false);
+    }
+
+    private void LoadMove(RecordedMove move) {
+        if (!cardsById.TryGetValue(move.card, out var card)) {
+            Debug.LogWarning("error loading: card not found: " + move.card);
+            return;
+        }
+
+        if (move.flip) {
+            card.Flip(false, true);
+            return;
+        }
+
+        if (!allStacks.TryGetValue(move.newStack, out var stack)) {
+            Debug.LogWarning("error loading: stack not found: " + move.newStack);
+            return;
+        }
+        stack.AddCardFast(card, true, true);
     }
 }

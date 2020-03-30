@@ -23,7 +23,7 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
     public float speed, doubleClickSpeed;
 
     [NonSerialized]
-    public int number;
+    public int number, deck;
     [NonSerialized]
     public string suit;
 
@@ -36,7 +36,7 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
     [NonSerialized]
     public SortingGroup sortingGroup;
 
-    private Vector2 oldPostition;
+    private bool dragging;
 
     private SpriteRenderer spriteRenderer;
     private DateTime lastClickAt = DateTime.Now;
@@ -62,8 +62,14 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
         return number.ToString();
     }
 
-    public void Flip(bool faceDown) {
+    public void Flip(bool faceDown, bool isUndo = false) {
+        if (this.faceDown == faceDown) {
+            return;
+        }
         this.faceDown = faceDown;
+        if (!isUndo) {
+            GameStateManager.instance.RecordFlip(this);
+        }
         Refresh();
     }
 
@@ -75,7 +81,7 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
         return Black ? blackColor : redColor;
     }
 
-    protected bool Sequential() {
+    public bool Sequential() {
         if (faceDown) {
             return false;
         }
@@ -86,9 +92,8 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
     }
 
     public void Refresh() {
+        UpdateColliders();
         if (faceDown) {
-            fullCollider.enabled = false;
-            topCollider.enabled = false;
             spriteRenderer.sprite = backSprite;
             foreach (var suitText in suitTexts) {
                 suitText.text = "";
@@ -98,8 +103,6 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
             }
             return;
         }
-        fullCollider.enabled = true;
-        UpdateTopCollider();
         spriteRenderer.sprite = frontSprite;
         foreach (var suitText in suitTexts) {
             suitText.text = suit;
@@ -111,53 +114,80 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
         }
     }
 
-    public void UpdateTopCollider() {
+    public void UpdateColliders() {
         topCollider.enabled = Sequential();
+        fullCollider.enabled = cardOnTop == null;
     }
 
-    public void Return() {
-        StartCoroutine(MoveTo(oldPostition));
+    private int NumParents() {
+        if (parentCard == null) {
+            return 0;
+        }
+        return 1 + parentCard.NumParents();
     }
 
-    public IEnumerator MoveTo(Vector2 pos) {
-        var heading = pos - transform.position.In2d();
+    private Vector3 GetPosition() {
+        if (stack == null) {
+            return Vector3.zero;
+        }
+        return stack.transform.position + stack.offset.In3d() * NumParents();
+    }
+
+    public void MoveFast() {
+        transform.position = GetPosition();
+        sortingGroup.sortingOrder = NumParents();
+        transform.parent = parentCard?.transform ?? stack.transform;
+    }
+
+    public IEnumerator Move() {
+        var heading = GetPosition() - transform.position;
         var distance = heading.magnitude;
         var direction = heading / distance;
 
         sortingGroup.sortingOrder = 99;
+        transform.parent = null;
         while(true) {
             var moveDistance = speed * Time.deltaTime;
             distance -= moveDistance;
             if (distance <= 0) {
                 break;
             }
-            transform.position += direction.In3d() * moveDistance;
+            transform.position += direction * moveDistance;
 
             yield return null;
         }
-        transform.position = pos;
-        oldPostition = pos;
-        sortingGroup.sortingOrder = stack.Count();
+        MoveFast();
     }
 
     void IBeginDragHandler.OnBeginDrag(PointerEventData eventData) {
+        if (PlayManager.locked) {
+            return;
+        }
         sortingGroup.sortingOrder = 99;
         transform.parent = null;
+        dragging = true;
     }
 
     void IDragHandler.OnDrag(PointerEventData eventData) {
+        if (!dragging) {
+            return;
+        }
         var worldPos = eventData.pressEventCamera.ScreenToWorldPoint(eventData.position);
         worldPos.z = 0;
         transform.position = worldPos;
     }
 
     void IEndDragHandler.OnEndDrag(PointerEventData eventData) {
-        sortingGroup.sortingOrder = stack.Count();
+        if (!dragging) {
+            return;
+        }
+        dragging = false;
+        sortingGroup.sortingOrder = NumParents();
 
         transform.parent = parentCard?.transform ?? stack.transform;
         var newStack = GetOverlappingStack();
-        if (newStack == null || newStack == stack) {
-            Return();
+        if (newStack == null || newStack == stack || PlayManager.locked) {
+            StartCoroutine(Move()); // return the card
             return;
         }
         newStack.AddCard(this);
@@ -192,28 +222,34 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
         var now = DateTime.Now;
         var diff = now - lastClickAt;
         if (diff.TotalSeconds <= doubleClickSpeed) {
-            DoubleClick();
+            StartCoroutine(DoubleClick());
         }
         lastClickAt = now;
     }
 
-
-    private void DoubleClick() {
-        if (cardOnTop != null) {
-            return;
-        }
-        if (stack is FinalStack || stack is Deck) {
-            return;
+    private IEnumerator DoubleClick() {
+        if (PlayManager.locked || cardOnTop != null || stack is FinalStack || stack is Deck) {
+            yield break;
         }
         foreach (var finalStack in PlayManager.instance.finalStacks) {
             if (finalStack.CanAdd(this)) {
-                finalStack.AddCard(this);
-                return;
+                PlayManager.locked = true;
+                yield return StartCoroutine(finalStack.AddCardSync(this));
+                GameStateManager.instance.RecordUndo();
+                PlayManager.locked = false;
+                break;
             }
         }
     }
 
+    public void SetStacks(Stack stack) {
+        this.stack = stack;
+        if (cardOnTop != null) {
+            cardOnTop.SetStacks(stack);
+        }
+    }
+
     public override string ToString() {
-        return number + suit;
+        return number + " " + suit + " " + deck;
     }
 }
