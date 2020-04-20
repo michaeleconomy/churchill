@@ -184,7 +184,6 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
         //}
         for (var time = Time.deltaTime; time < moveTime; time += Time.deltaTime) {
             transform.position = start + direction * distance * time / moveTime;
-
             yield return null;
         }
         MoveFast();

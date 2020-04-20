@@ -28,7 +28,8 @@ public class PlayManager : MonoBehaviour {
     private readonly Dictionary<string, Stack> allStacks = new Dictionary<string, Stack>();
     private readonly Dictionary<string, Card> cardsById = new Dictionary<string, Card>();
 
-    private bool foreground = true;
+    private bool foreground = true,
+        won = false;
 
     private void Awake() {
         instance = this;
@@ -119,6 +120,7 @@ public class PlayManager : MonoBehaviour {
             Stats.instance.TrackGameEnd(false);
         }
         gameInProgress = true;
+        won = false;
         Stats.instance.TrackGameStart();
         deck.bottomCard = null;
         devilsSix.bottomCard = null;
@@ -187,9 +189,13 @@ public class PlayManager : MonoBehaviour {
     }
 
     public void WinCheck() {
+        if (won) {
+            return;
+        }
         if (!Winning()) {
             return;
         }
+        won = true;
         StartCoroutine(FinishOut());
     }
 
