@@ -43,6 +43,8 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
     private SpriteRenderer spriteRenderer;
     private DateTime lastClickAt = DateTime.Now;
 
+    private bool shifted;
+
     private void Awake() {
         spriteRenderer = GetComponent<SpriteRenderer>();
         sortingGroup = GetComponent<SortingGroup>();
@@ -113,6 +115,10 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
         foreach (var numberText in numberTexts) {
             numberText.text = StyledNumber();
             numberText.color = GetColor();
+        }
+        if (number == 10 && !shifted) {
+            shifted = true;
+            numberTexts[0].transform.position += Vector3.left * .09f;
         }
     }
 

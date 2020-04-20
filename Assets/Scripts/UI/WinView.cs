@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.iOS;
 
 public class WinView : MonoBehaviour {
     public Text winCountText;
@@ -28,7 +29,7 @@ public class WinView : MonoBehaviour {
             if (option == 0) {
 #if UNITY_IOS
                 if (!Device.RequestStoreReview()) {
-                    UIDialog.Alert("Glad to hear it!");
+                    DialogView.Prompt("Glad to hear it!");
                 }
 #elif UNITY_ANDROID
                 DialogView.Confirm("Would you care to write a review?", () => {
