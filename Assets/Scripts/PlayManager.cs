@@ -268,6 +268,7 @@ public class PlayManager : MonoBehaviour {
         gameInProgress = true;
         locked = false;
         startView.gameObject.SetActive(false);
+        startView.DoneLoading();
     }
 
     private void LoadMove(RecordedMove move) {
