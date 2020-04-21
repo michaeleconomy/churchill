@@ -42,6 +42,7 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
 
     private SpriteRenderer spriteRenderer;
     private DateTime lastClickAt = DateTime.Now;
+    private Vector3 dragOffset;
 
     private bool shifted;
 
@@ -193,6 +194,9 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
         if (PlayManager.locked) {
             return;
         }
+
+        var worldPos = eventData.pressEventCamera.ScreenToWorldPoint(eventData.position);
+        dragOffset = transform.position - worldPos;
         sortingGroup.sortingOrder = 99;
         transform.parent = null;
         dragging = true;
@@ -204,7 +208,7 @@ public class Card : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IEnd
         }
         var worldPos = eventData.pressEventCamera.ScreenToWorldPoint(eventData.position);
         worldPos.z = 0;
-        transform.position = worldPos;
+        transform.position = worldPos + dragOffset;
     }
 
     void IEndDragHandler.OnEndDrag(PointerEventData eventData) {
