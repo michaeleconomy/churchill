@@ -223,22 +223,8 @@ public class PlayManager : MonoBehaviour {
         locked = false;
         gameInProgress = false;
         Stats.instance.TrackGameEnd(true);
+        GameStateManager.instance.ClearSave();
         winView.Show();
-    }
-
-    private IEnumerator TrackTime() {
-        while(true) {
-            var lastTime = DateTime.Now;
-            yield return new WaitForSeconds(1);
-            if (gameInProgress && foreground) {
-                var elapsed = DateTime.Now - lastTime;
-                var elapsedSecs = (float)elapsed.TotalSeconds;
-                if (elapsedSecs > 1) {
-                    elapsedSecs = 1;
-                }
-                Stats.instance.TrackTime(elapsedSecs);
-            }
-        }
     }
 
     private bool Winning() {
@@ -254,6 +240,21 @@ public class PlayManager : MonoBehaviour {
             }
         }
         return true;
+    }
+
+    private IEnumerator TrackTime() {
+        while(true) {
+            var lastTime = DateTime.Now;
+            yield return new WaitForSeconds(1);
+            if (gameInProgress && foreground) {
+                var elapsed = DateTime.Now - lastTime;
+                var elapsedSecs = (float)elapsed.TotalSeconds;
+                if (elapsedSecs > 1) {
+                    elapsedSecs = 1;
+                }
+                Stats.instance.TrackTime(elapsedSecs);
+            }
+        }
     }
 
     public void NoGameToLoad() {

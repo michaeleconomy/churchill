@@ -162,6 +162,10 @@ public class GameStateManager : MonoBehaviour {
         File.WriteAllText(FileName(), json);
     }
 
+    public void ClearSave() {
+        File.Delete(FileName());
+    }
+
     private string FileName() {
         return Application.persistentDataPath + "/cards.json";
     }
